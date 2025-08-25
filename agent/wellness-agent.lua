@@ -31,6 +31,8 @@ local workoutSuggestions = {
   }
 }
 
+--- Caching Functions ---
+
 -- Patches a user's profile to the cache for the frontend to read.
 function cacheProfile(userAddress)
   local userProfile = State.UserProfiles[userAddress]
@@ -40,6 +42,41 @@ function cacheProfile(userAddress)
       cache = { [userAddress] = json.encode(userProfile) }
     })
     print("Profile for " .. userAddress .. " has been cached.")
+  end
+end
+
+-- Patches a user's workout logs to the cache.
+function cacheWorkouts(userAddress)
+  local userWorkouts = State.Workouts[userAddress]
+  if userWorkouts then
+    ao.send({
+      device = 'patch@1.0',
+      cache = { [userAddress .. "-workouts"] = json.encode(userWorkouts) }
+    })
+    print("Workouts for " .. userAddress .. " have been cached.")
+  end
+end
+
+-- Patches a user's nutrition logs to the cache.
+function cacheNutrition(userAddress)
+  local userNutrition = State.NutritionLogs[userAddress]
+  if userNutrition then
+    ao.send({
+      device = 'patch@1.0',
+      cache = { [userAddress .. "-nutrition"] = json.encode(userNutrition) }
+    })
+    print("Nutrition logs for " .. userAddress .. " have been cached.")
+  end
+end
+
+-- Patches a workout suggestion to the cache.
+function cacheSuggestion(userAddress, suggestion)
+  if suggestion then
+    ao.send({
+      device = 'patch@1.0',
+      cache = { [userAddress .. "-suggestion"] = json.encode(suggestion) }
+    })
+    print("Suggestion for " .. userAddress .. " has been cached.")
   end
 end
 
@@ -96,9 +133,11 @@ Handlers.add(
     
     table.insert(State.Workouts[userAddress], {
       type = msg.Tags.Type,
-      duration = tonumber(msg.Tags.Duration),
+      duration_minutes = tonumber(msg.Tags.Duration), -- Aligned with frontend interface
       date = msg.Timestamp
     })
+    
+    cacheWorkouts(userAddress)
     
     print("Workout logged for: " .. userAddress)
     Handlers.utils.reply("Success: Workout logged.")(msg)
@@ -114,10 +153,12 @@ Handlers.add(
     if not State.NutritionLogs[userAddress] then State.NutritionLogs[userAddress] = {} end
 
     table.insert(State.NutritionLogs[userAddress], {
-      food = msg.Tags.Food,
+      food_item = msg.Tags.Food, -- Aligned with frontend interface
       calories = tonumber(msg.Tags.Calories),
       date = msg.Timestamp
     })
+
+    cacheNutrition(userAddress)
 
     print("Nutrition logged for: " .. userAddress)
     Handlers.utils.reply("Success: Nutrition logged.")(msg)
@@ -135,8 +176,30 @@ Handlers.add(
 
     local suggestion = workoutSuggestions[fitnessLevel] and workoutSuggestions[fitnessLevel][goal] or workoutSuggestions.beginner["general-health"]
 
-    print("Suggestion sent for " .. fitnessLevel .. "/" .. goal)
+    cacheSuggestion(msg.From, suggestion)
+
+    print("Suggestion sent and cached for " .. fitnessLevel .. "/" .. goal)
     Handlers.utils.reply(json.encode(suggestion))(msg)
+  end
+)
+
+-- Handler for the frontend to request a user's workouts
+Handlers.add(
+  "GetWorkouts",
+  Handlers.utils.hasMatchingTag("Action", "GetWorkouts"),
+  function (msg)
+    cacheWorkouts(msg.From)
+    Handlers.utils.reply("Success: Workouts cached.")(msg)
+  end
+)
+
+-- Handler for the frontend to request a user's nutrition logs
+Handlers.add(
+  "GetNutritionLogs",
+  Handlers.utils.hasMatchingTag("Action", "GetNutritionLogs"),
+  function (msg)
+    cacheNutrition(msg.From)
+    Handlers.utils.reply("Success: Nutrition logs cached.")(msg)
   end
 )
 

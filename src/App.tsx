@@ -36,6 +36,62 @@ function App() {
   const [showLogNutrition, setShowLogNutrition] = useState(false);
   const { connected, address, connect } = useConnection();
 
+  const loadAppData = useCallback(async (userAddress: string) => {
+    console.log("Attempting to load app data (workouts, nutrition, suggestions)...");
+    try {
+      // Trigger agent to cache data
+      sendMessage({ action: 'GetWorkouts' });
+      sendMessage({ action: 'GetNutritionLogs' });
+      sendMessage({ action: 'RequestWorkout' }); // Request initial suggestion
+
+      // Poll for workouts
+      let fetchedWorkouts: WorkoutData[] = [];
+      for (let i = 0; i < 5; i++) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        try {
+          const data = await readState(userAddress + "-workouts");
+          if (data) {
+            fetchedWorkouts = data;
+            break;
+          }
+        } catch (e) { /* ignore error, retry */ }
+      }
+      setWorkouts(fetchedWorkouts);
+
+      // Poll for nutrition logs
+      let fetchedNutritionLogs: NutritionData[] = [];
+      for (let i = 0; i < 5; i++) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        try {
+          const data = await readState(userAddress + "-nutrition");
+          if (data) {
+            fetchedNutritionLogs = data;
+            break;
+          }
+        } catch (e) { /* ignore error, retry */ }
+      }
+      setNutritionLogs(fetchedNutritionLogs);
+
+      // Poll for suggested workout
+      let fetchedSuggestedWorkout: SuggestedExercise[] | null = null;
+      for (let i = 0; i < 5; i++) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        try {
+          const data = await readState(userAddress + "-suggestion");
+          if (data) {
+            fetchedSuggestedWorkout = data;
+            break;
+          }
+        } catch (e) { /* ignore error, retry */ }
+      }
+      setSuggestedWorkout(fetchedSuggestedWorkout);
+
+      console.log("App data loaded.");
+    } catch (error) {
+      console.error('Failed to load app data:', error);
+    }
+  }, []);
+
   const loadUserProfile = useCallback(async () => {
     if (!address) return;
     
@@ -66,7 +122,7 @@ function App() {
       if (profile) {
         setUserData(profile);
         setIsRegistered(true);
-        // TODO: Re-implement workout and nutrition log fetching using the new pattern
+        loadAppData(address); // Call new function to load other app data
       } else {
         console.log("Profile not found after polling. User is not registered.");
         setIsRegistered(false);
@@ -75,7 +131,7 @@ function App() {
       console.error('Failed to load user profile:', error);
       setIsRegistered(false);
     }
-  }, [address]);
+  }, [address, loadAppData]);
 
   useEffect(() => {
     if (connected) {
@@ -84,8 +140,33 @@ function App() {
   }, [connected, loadUserProfile]);
 
   const handleRequestNewWorkout = async () => {
-    // TODO: This needs to be re-implemented with sendMessage and readState
     console.log("Requesting new workout from AI agent...");
+    if (!address) return;
+
+    try {
+      await sendMessage({ action: 'RequestWorkout' });
+
+      let newSuggestion: SuggestedExercise[] | null = null;
+      for (let i = 0; i < 5; i++) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        try {
+          const data = await readState(address + "-suggestion");
+          if (data) {
+            newSuggestion = data;
+            break;
+          }
+        } catch (e) { /* ignore error, retry */ }
+      }
+      if (newSuggestion) {
+        setSuggestedWorkout(newSuggestion);
+        alert("New workout suggestion loaded!");
+      } else {
+        alert("Failed to get a new workout suggestion.");
+      }
+    } catch (error) {
+      console.error("Error requesting new workout:", error);
+      alert("Failed to request new workout. Please try again.");
+    }
   };
 
   if (!connected) return <LandingPage onGetStarted={connect} />;
@@ -116,10 +197,3 @@ function App() {
 }
 
 export default App;
-
-
-
-
-
-
-

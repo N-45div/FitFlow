@@ -1,7 +1,7 @@
 import { createDataItemSigner, connect, message } from "@permaweb/aoconnect";
 
 // The Process ID of the agent we created
-export const AO_PROCESS_ID = "U-gmQ13jTAlso2r9DjTMDGjGYK4gqSbHxAq6vl65wBk";
+export const AO_PROCESS_ID = "z6hliCGjG2DOwr8tZ0DG6MZboR6hHlkuIBbQoROJdOQ";
 
 // Base URL for the Compute Unit
 const CU_URL = "https://cu.ao-testnet.xyz";
@@ -12,7 +12,7 @@ const signer = createDataItemSigner(window.arweaveWallet);
 // Configure the library with all necessary parameters
 connect({
   MODE: "mainnet",
-  GATEWAY_URL: "https://arweave.net",
+  GATEWAY_URL: "http://72.46.85.207:8734/",
   CU_URL: CU_URL,
   MU_URL: "https://mu.ao-testnet.xyz",
   signer,
