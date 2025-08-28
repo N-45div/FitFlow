@@ -9,47 +9,37 @@ interface LandingPageProps {
 export default function LandingPage({ onGetStarted }: LandingPageProps) {
   const features = [
     {
-      icon: <Target className="h-8 w-8 text-orange-600" />,
-      title: "Personalized Plans",
-      description: "AI-generated workout and nutrition plans tailored to your unique goals and preferences."
+      icon: <Zap className="h-8 w-8 text-orange-600" />,
+      title: "72+ Hour Autonomous Operation",
+      description: "Self-triggering AI agent that runs continuously on Arweave's AO protocol without interruption."
     },
     {
-      icon: <TrendingUp className="h-8 w-8 text-yellow-600" />,
-      title: "Progress Tracking",
-      description: "Visual progress charts and streak tracking to keep you motivated on your journey."
+      icon: <Shield className="h-8 w-8 text-yellow-600" />,
+      title: "Permanent Data Storage",
+      description: "All your wellness data is stored permanently on Arweave blockchain - never lost, always accessible."
     },
     {
-      icon: <Users className="h-8 w-8 text-green-600" />,
-      title: "Community Support",
-      description: "Connect with like-minded individuals and share your wellness achievements."
+      icon: <Target className="h-8 w-8 text-green-600" />,
+      title: "Real-time AI Insights",
+      description: "Personalized health recommendations and trend analysis powered by autonomous AI agents."
     },
     {
-      icon: <Shield className="h-8 w-8 text-blue-600" />,
-      title: "Secure & Private",
-      description: "Your health data is encrypted and stored securely with blockchain technology."
+      icon: <TrendingUp className="h-8 w-8 text-blue-600" />,
+      title: "Message-based Architecture",
+      description: "Scalable AO process communication enabling infinite growth and cross-agent collaboration."
+    },
+    {
+      icon: <Users className="h-8 w-8 text-purple-600" />,
+      title: "Wallet Integration",
+      description: "Seamless Arweave wallet connection with secure, decentralized authentication."
+    },
+    {
+      icon: <Heart className="h-8 w-8 text-pink-600" />,
+      title: "Modern React Frontend",
+      description: "Beautiful, responsive UI built with React, TypeScript, and TailwindCSS for optimal user experience."
     }
   ];
 
-  const testimonials = [
-    {
-      name: "Sarah Johnson",
-      role: "Fitness Enthusiast",
-      content: "The AI coach helped me lose 15 pounds in 3 months with personalized plans that actually fit my busy schedule.",
-      avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=64&h=64&fit=crop&crop=face"
-    },
-    {
-      name: "Mike Chen",
-      role: "Software Developer",
-      content: "Finally, a wellness app that understands my lifestyle. The nutrition plans are realistic and the workouts are efficient.",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=64&h=64&fit=crop&crop=face"
-    },
-    {
-      name: "Emily Rodriguez",
-      role: "Working Mom",
-      content: "The daily motivation and quick workouts have been game-changers. I feel stronger and more energetic than ever!",
-      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=64&h=64&fit=crop&crop=face"
-    }
-  ];
 
   const handleLearnMore = () => {
     document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
@@ -72,8 +62,7 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
             </div>
             <nav className="hidden md:flex space-x-8">
               <a href="#features" className="text-gray-600 hover:text-orange-600 transition-colors">Features</a>
-              <a href="#testimonials" className="text-gray-600 hover:text-orange-600 transition-colors">Testimonials</a>
-              <a href="#pricing" className="text-gray-600 hover:text-orange-600 transition-colors">Pricing</a>
+              <a href="#tech-stack" className="text-gray-600 hover:text-orange-600 transition-colors">Tech Stack</a>
             </nav>
           </div>
         </div>
@@ -94,7 +83,7 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
               <div key={index} className="text-center p-6 rounded-xl bg-gradient-to-br from-orange-50 to-yellow-50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full mb-4 shadow-sm">
@@ -108,35 +97,39 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section id="testimonials" className="py-20 bg-gradient-to-br from-orange-50 to-yellow-50">
+      {/* Tech Stack Section */}
+      <section id="tech-stack" className="py-20 bg-gradient-to-br from-orange-50 to-yellow-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              What Our Users Say
+              Built with Cutting-Edge Technology
             </h2>
             <p className="text-xl text-gray-600">
-              Join thousands of people who have transformed their lives
+              Powered by Arweave's AO protocol for autonomous, permanent operation
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300">
-                <p className="text-gray-700 mb-4 italic">"{testimonial.content}"</p>
-                <div className="flex items-center space-x-3">
-                  <img 
-                    src={testimonial.avatar} 
-                    alt={testimonial.name}
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                  <div>
-                    <h4 className="font-semibold text-gray-900">{testimonial.name}</h4>
-                    <p className="text-sm text-gray-600">{testimonial.role}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="text-center p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300">
+              <div className="text-4xl mb-4">🌐</div>
+              <h3 className="font-semibold text-gray-900">AO Protocol</h3>
+              <p className="text-sm text-gray-600">Autonomous Objects</p>
+            </div>
+            <div className="text-center p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300">
+              <div className="text-4xl mb-4">🔗</div>
+              <h3 className="font-semibold text-gray-900">Arweave</h3>
+              <p className="text-sm text-gray-600">Permanent Storage</p>
+            </div>
+            <div className="text-center p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300">
+              <div className="text-4xl mb-4">⚛️</div>
+              <h3 className="font-semibold text-gray-900">React</h3>
+              <p className="text-sm text-gray-600">Frontend Framework</p>
+            </div>
+            <div className="text-center p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300">
+              <div className="text-4xl mb-4">🔷</div>
+              <h3 className="font-semibold text-gray-900">TypeScript</h3>
+              <p className="text-sm text-gray-600">Type Safety</p>
+            </div>
           </div>
         </div>
       </section>
@@ -162,39 +155,24 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="col-span-1 md:col-span-2">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="relative">
-                  <Heart className="h-8 w-8 text-orange-500" fill="currentColor" />
-                  <Zap className="h-4 w-4 text-yellow-400 absolute -top-1 -right-1" fill="currentColor" />
-                </div>
-                <h3 className="text-2xl font-bold">AI Wellness Coach</h3>
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="flex items-center space-x-3 mb-4 md:mb-0">
+              <div className="relative">
+                <Heart className="h-8 w-8 text-orange-500" fill="currentColor" />
+                <Zap className="h-4 w-4 text-yellow-400 absolute -top-1 -right-1" fill="currentColor" />
               </div>
-              <p className="text-gray-400 max-w-md">
-                Empowering your wellness journey with personalized AI coaching, 
-                secure blockchain technology, and a supportive community.
-              </p>
+              <h3 className="text-2xl font-bold">AI Wellness Coach</h3>
             </div>
-            <div>
-              <h4 className="font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">API</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Support</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Privacy</a></li>
-              </ul>
+            <div className="flex items-center space-x-6 text-gray-400">
+              <a href="https://x.com/godlovesu_n" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                Creator on X
+              </a>
+              <a href="#features" className="hover:text-white transition-colors">Features</a>
+              <a href="#tech-stack" className="hover:text-white transition-colors">Tech Stack</a>
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 AI Wellness Coach. All rights reserved.</p>
+            <p>&copy; 2025 AI Wellness Coach. All rights reserved.</p>
           </div>
         </div>
       </footer>

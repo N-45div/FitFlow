@@ -35,24 +35,175 @@ function persistState()
   print("State persistence message sent to Arweave.")
 end
 
--- Predefined workout suggestions from V3
-local workoutSuggestions = {
-  beginner = {
-    ["weight-loss"] = { { name = "Full Body Circuit", details = "3 rounds" }, { name = "Brisk Walking", details = "30 minutes" } },
-    ["muscle-gain"] = { { name = "Intro to Bodybuilding", details = "3 sets x 12 reps" }, { name = "Bodyweight Squats", details = "3 sets" } },
-    ["general-health"] = { { name = "Yoga for Beginners", details = "20 minutes" }, { name = "Light Jogging", details = "15 minutes" } }
+-- Advanced AI Workout System with Context Awareness
+local workoutDatabase = {
+  recovery = {
+    low_energy = { { name = "Gentle Flow Yoga", details = "15 min" }, { name = "Walking Meditation", details = "10 min" } },
+    poor_sleep = { { name = "Restorative Stretching", details = "20 min" }, { name = "Breathing Exercises", details = "5 min" } },
+    high_stress = { { name = "Tai Chi", details = "25 min" }, { name = "Progressive Relaxation", details = "15 min" } }
   },
-  intermediate = {
-    ["weight-loss"] = { { name = "HIIT Cardio", details = "20 minutes" }, { name = "Jump Rope", details = "15 minutes" } },
-    ["muscle-gain"] = { { name = "Push/Pull/Legs Split", details = "Day 1: Push" }, { name = "Deadlifts", details = "5x5" } },
-    ["general-health"] = { { name = "Swimming", details = "30 minutes" }, { name = "Cycling", details = "45 minutes" } }
+  
+  mood_boost = {
+    low_mood = { { name = "Dance Cardio", details = "20 min" }, { name = "Boxing Basics", details = "15 min" } },
+    moderate_mood = { { name = "Interval Running", details = "25 min" }, { name = "Strength Circuit", details = "30 min" } },
+    high_mood = { { name = "HIIT Challenge", details = "35 min" }, { name = "Rock Climbing", details = "45 min" } }
   },
-  advanced = {
-    ["weight-loss"] = { { name = "Advanced HIIT", details = "25 minutes" }, { name = "Sprint Intervals", details = "20 minutes" } },
-    ["muscle-gain"] = { { name = "5/3/1 Program", details = "Week 1, Day 1" }, { name = "Olympic Lifts", details = "Practice session" } },
-    ["general-health"] = { { name = "Triathlon Training", details = "Brick workout" }, { name = "Trail Running", details = "60 minutes" } }
+  
+  adaptive = {
+    beginner = {
+      ["weight-loss"] = { { name = "Full Body Circuit", details = "3 rounds" }, { name = "Brisk Walking", details = "30 minutes" } },
+      ["muscle-gain"] = { { name = "Intro to Bodybuilding", details = "3 sets x 12 reps" }, { name = "Bodyweight Squats", details = "3 sets" } },
+      ["general-health"] = { { name = "Yoga for Beginners", details = "20 minutes" }, { name = "Light Jogging", details = "15 minutes" } }
+    },
+    intermediate = {
+      ["weight-loss"] = { { name = "HIIT Cardio", details = "20 minutes" }, { name = "Jump Rope", details = "15 minutes" } },
+      ["muscle-gain"] = { { name = "Push/Pull/Legs Split", details = "Day 1: Push" }, { name = "Deadlifts", details = "5x5" } },
+      ["general-health"] = { { name = "Swimming", details = "30 minutes" }, { name = "Cycling", details = "45 minutes" } }
+    },
+    advanced = {
+      ["weight-loss"] = { { name = "Advanced HIIT", details = "25 minutes" }, { name = "Sprint Intervals", details = "20 minutes" } },
+      ["muscle-gain"] = { { name = "5/3/1 Program", details = "Week 1, Day 1" }, { name = "Olympic Lifts", details = "Practice session" } },
+      ["general-health"] = { { name = "Triathlon Training", details = "Brick workout" }, { name = "Trail Running", details = "60 minutes" } }
+    }
+  },
+  
+  time_based = {
+    morning = { { name = "Energizing Flow", details = "20 min" }, { name = "Core Activation", details = "10 min" } },
+    afternoon = { { name = "Power Lunch Workout", details = "15 min" }, { name = "Desk Stretches", details = "5 min" } },
+    evening = { { name = "Stress Relief Yoga", details = "30 min" }, { name = "Cool Down Walk", details = "20 min" } }
+  },
+  
+  weather_adaptive = {
+    rainy = { { name = "Indoor Cardio Circuit", details = "25 min" }, { name = "Bodyweight HIIT", details = "20 min" } },
+    sunny = { { name = "Outdoor Running", details = "30 min" }, { name = "Park Workout", details = "40 min" } },
+    cold = { { name = "Warm-up Intensive", details = "35 min" }, { name = "Indoor Strength", details = "45 min" } }
   }
 }
+
+-- AI Workout Intelligence Functions
+function calculateUserContext(userAddress)
+  local user = State.UserProfiles[userAddress]
+  local checkIns = State.DailyCheckIns[userAddress] or {}
+  local workouts = State.Workouts[userAddress] or {}
+  
+  -- Get recent data (last 7 days)
+  local recentCheckIns = {}
+  local currentTime = os.time() * 1000
+  local weekAgo = currentTime - (7 * 24 * 60 * 60 * 1000)
+  
+  for _, checkIn in pairs(checkIns) do
+    if checkIn.date >= weekAgo then
+      table.insert(recentCheckIns, checkIn)
+    end
+  end
+  
+  -- Calculate context scores
+  local avgMood = 3 -- default
+  local avgSleep = 7 -- default
+  local avgEnergy = 5 -- default
+  
+  if #recentCheckIns > 0 then
+    local totalMood, totalSleep, totalEnergy = 0, 0, 0
+    for _, checkIn in ipairs(recentCheckIns) do
+      totalMood = totalMood + (checkIn.mood or 3)
+      totalSleep = totalSleep + (checkIn.sleep_hours or 7)
+      totalEnergy = totalEnergy + (checkIn.activity_minutes or 30) / 6 -- normalize to 1-10 scale
+    end
+    avgMood = totalMood / #recentCheckIns
+    avgSleep = totalSleep / #recentCheckIns
+    avgEnergy = totalEnergy / #recentCheckIns
+  end
+  
+  return {
+    mood = avgMood,
+    sleep = avgSleep,
+    energy = avgEnergy,
+    fitness_level = user and user.fitness_level or "beginner",
+    goal = user and user.goal or "general-health",
+    workout_count = #workouts
+  }
+end
+
+function generateSmartWorkout(userAddress)
+  local context = calculateUserContext(userAddress)
+  local currentHour = tonumber(os.date("%H"))
+  
+  -- Priority-based workout selection
+  
+  -- 1. Recovery needed (poor sleep or low mood)
+  if context.sleep < 6 or context.mood <= 2 then
+    if context.sleep < 6 then
+      return workoutDatabase.recovery.poor_sleep
+    else
+      return workoutDatabase.recovery.low_energy
+    end
+  end
+  
+  -- 2. Mood boost needed
+  if context.mood <= 3 then
+    if context.mood <= 2 then
+      return workoutDatabase.mood_boost.low_mood
+    else
+      return workoutDatabase.mood_boost.moderate_mood
+    end
+  end
+  
+  -- 3. Time-based recommendations
+  local timeOfDay = "morning"
+  if currentHour >= 12 and currentHour < 17 then
+    timeOfDay = "afternoon"
+  elseif currentHour >= 17 then
+    timeOfDay = "evening"
+  end
+  
+  -- 4. Adaptive workout based on fitness level and goals
+  local fitnessLevel = context.fitness_level
+  local goal = context.goal
+  
+  if workoutDatabase.adaptive[fitnessLevel] and workoutDatabase.adaptive[fitnessLevel][goal] then
+    local adaptiveWorkout = workoutDatabase.adaptive[fitnessLevel][goal]
+    local timeWorkout = workoutDatabase.time_based[timeOfDay]
+    
+    -- Combine adaptive and time-based for variety
+    if math.random() > 0.5 then
+      return adaptiveWorkout
+    else
+      return timeWorkout
+    end
+  end
+  
+  -- Fallback to time-based
+  return workoutDatabase.time_based[timeOfDay]
+end
+
+function generateProgressiveWorkout(userAddress)
+  local context = calculateUserContext(userAddress)
+  local workouts = State.Workouts[userAddress] or {}
+  
+  -- Calculate progression multiplier based on consistency
+  local progressionLevel = 1.0
+  if context.workout_count > 10 then
+    progressionLevel = 1.2
+  elseif context.workout_count > 20 then
+    progressionLevel = 1.4
+  elseif context.workout_count > 50 then
+    progressionLevel = 1.6
+  end
+  
+  local baseWorkout = generateSmartWorkout(userAddress)
+  
+  -- Enhance workout based on progression
+  for i, exercise in ipairs(baseWorkout) do
+    local duration = tonumber(exercise.details:match("%d+"))
+    if duration then
+      local newDuration = math.floor(duration * progressionLevel)
+      baseWorkout[i].details = exercise.details:gsub("%d+", tostring(newDuration))
+      baseWorkout[i].name = "💪 " .. exercise.name .. " (Progressive)"
+    end
+  end
+  
+  return baseWorkout
+end
 
 --- Response Functions for legacynet ---
 
@@ -213,20 +364,37 @@ Handlers.add(
   end
 )
 
--- Handler for workout suggestions
+-- Handler for AI-powered workout suggestions
 Handlers.add(
   "RequestWorkout",
   Handlers.utils.hasMatchingTag("Action", "RequestWorkout"),
   function(msg)
-    local userProfile = State.UserProfiles[msg.From] or {}
-    local fitnessLevel = userProfile.fitness_level or "beginner"
-    local goal = userProfile.goal or "general-health"
+    local userAddress = msg.From
+    
+    -- Generate intelligent workout based on user context
+    local smartWorkout = generateProgressiveWorkout(userAddress)
+    
+    -- Add AI insights to the workout
+    local context = calculateUserContext(userAddress)
+    local aiInsights = {
+      reason = "Based on your recent activity and wellness data",
+      mood_factor = context.mood <= 3 and "mood-boost focus" or "optimal performance",
+      sleep_factor = context.sleep < 6 and "recovery emphasis" or "full intensity",
+      progression = context.workout_count > 10 and "progressive difficulty" or "foundation building"
+    }
+    
+    -- Enhanced workout with AI context
+    local enhancedWorkout = {
+      exercises = smartWorkout,
+      ai_insights = aiInsights,
+      personalization_score = math.floor((context.mood + context.sleep/2 + context.energy/2) * 10) / 10,
+      recommended_time = os.date("%H:%M"),
+      difficulty_level = context.workout_count > 20 and "Advanced" or (context.workout_count > 10 and "Intermediate" or "Beginner")
+    }
 
-    local suggestion = workoutSuggestions[fitnessLevel] and workoutSuggestions[fitnessLevel][goal] or workoutSuggestions.beginner["general-health"]
+    replyWithSuggestion(msg, userAddress, enhancedWorkout)
 
-    replyWithSuggestion(msg, msg.From, suggestion)
-
-    print("Suggestion sent for " .. fitnessLevel .. "/" .. goal)
+    print("🤖 AI Workout generated for " .. userAddress .. " (Score: " .. enhancedWorkout.personalization_score .. ")")
   end
 )
 

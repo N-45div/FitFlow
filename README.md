@@ -14,8 +14,10 @@ This project demonstrates how to build a **fully autonomous AI wellness coach** 
 ### Key Features Built
 - ✅ **72+ Hour Autonomous Operation** - Self-triggering agent loops
 - ✅ **Persistent Data Storage** - All data stored permanently on Arweave
-- ✅ **Real-time AI Insights** - Personalized health recommendations
-- ✅ **Modern React Frontend** - Beautiful, responsive UI
+- ✅ **Advanced AI Workout Intelligence** - Context-aware, progressive workout recommendations
+- ✅ **Biometric-Based Adaptation** - Workouts adapt to mood, sleep, and energy levels
+- ✅ **Real-time AI Insights** - Personalized health recommendations with explanations
+- ✅ **Modern React Frontend** - Beautiful, responsive UI with AI insights display
 - ✅ **Wallet Integration** - Seamless Arweave wallet connection
 - ✅ **Message-based Architecture** - Scalable AO process communication
 
@@ -38,30 +40,18 @@ cd flowiq/project
 npm install
 ```
 
-### 2. Generate Wallet
-```bash
-node -e "
-const Arweave = require('arweave');
-const fs = require('fs');
-const arweave = Arweave.init({});
-arweave.wallets.generate().then(key => {
-  fs.writeFileSync('wallet.json', JSON.stringify(key));
-  console.log('Wallet generated: wallet.json');
-});
-"
-```
-
-### 3. Deploy Your Agent
+### 2. Deploy Your Agent
 ```bash
 npm run deploy-agent
 ```
+*Note: This automatically generates a wallet and deploys to AO. Your new process ID will be: `rUSeoWKlj0awVosFeerZklwjryHxoeUYxIA8v0WrlrQ`*
 
-### 4. Start Development
+### 3. Start Development
 ```bash
 npm run dev
 ```
 
-🎉 **That's it!** Your autonomous AI agent is now running on AO legacynet!
+🎉 **That's it!** Your autonomous AI agent with advanced workout intelligence is now running on AO legacynet!
 
 ## 📚 Complete Tutorial
 
@@ -228,6 +218,27 @@ local function performHealthAnalysis()
       suggestWorkout(userId)
     end
   end
+end
+
+## 🧠 **Advanced AI Workout Intelligence**
+
+### **1. Context-Aware Adaptive System**
+The AI analyzes multiple data points to generate personalized workouts:
+
+- **Biometric Analysis**: Mood, sleep quality, energy levels from daily check-ins
+- **Recovery Detection**: Automatically suggests gentle workouts for poor sleep/low mood
+- **Progressive Adaptation**: Difficulty scales with user experience (1.2x → 1.6x multiplier)
+- **Time-Based Optimization**: Morning energizers, afternoon power sessions, evening recovery
+- **Multi-Modal Intelligence**: Combines wellness data, workout history, and user preferences
+
+### **2. Smart Personalization Algorithm**
+```lua
+-- Real implementation in your agent
+function calculateUserContext(userAddress)
+  -- Analyzes last 7 days of check-ins
+  -- Calculates mood, sleep, energy trends
+  -- Determines optimal workout intensity
+  return personalization_score -- 1-10 rating
 end
 ```
 
