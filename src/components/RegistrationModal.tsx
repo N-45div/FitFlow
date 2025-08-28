@@ -1,23 +1,15 @@
 import React, { useState } from 'react';
 import { Heart, Zap, User } from 'lucide-react';
 import { sendMessage } from '../lib/ao';
+import { UserData } from '../types/UserData';
 
 interface RegistrationModalProps {
   isOpen: boolean;
   onComplete: (data: UserData) => void;
 }
 
-interface UserData {
-  age: number;
-  gender: string;
-  fitnessLevel: string;
-  goal: string;
-  weight: number;
-  height: number;
-}
-
 export default function RegistrationModal({ isOpen, onComplete }: RegistrationModalProps) {
-  const [formData, setFormData] = useState<UserData>({ age: 0, gender: '', fitnessLevel: '', goal: '', weight: 0, height: 0 });
+  const [formData, setFormData] = useState<Partial<UserData>>({ age: 0, gender: '', fitness_level: '', goal: '', weight: 0, height: 0 });
   const [isRegistering, setIsRegistering] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,15 +19,22 @@ export default function RegistrationModal({ isOpen, onComplete }: RegistrationMo
       try {
         const registrationTags = [
           { name: "Age", value: String(formData.age) },
-          { name: "Gender", value: formData.gender },
-          { name: "FitnessLevel", value: formData.fitnessLevel },
-          { name: "Goal", value: formData.goal },
+          { name: "Gender", value: formData.gender! },
+          { name: "FitnessLevel", value: formData.fitness_level! },
+          { name: "Goal", value: formData.goal! },
           { name: "Weight", value: String(formData.weight) },
           { name: "Height", value: String(formData.height) }
         ];
         await sendMessage({ action: "Register", tags: registrationTags });
         alert("Registration successful! Welcome!");
-        onComplete(formData);
+        // Get wallet address from global wallet
+        const walletAddress = await (globalThis as any).arweaveWallet.getActiveAddress();
+        const completeUserData: UserData = {
+          ...formData as Required<Partial<UserData>>,
+          wallet_address: walletAddress,
+          registration_date: Date.now()
+        };
+        onComplete(completeUserData);
       } catch (error) {
         console.error("Registration failed:", error);
         alert("Registration failed. Please check the console and try again.");
@@ -45,7 +44,7 @@ export default function RegistrationModal({ isOpen, onComplete }: RegistrationMo
     }
   };
 
-  const handleChange = (field: keyof UserData, value: string | number) => {
+  const handleChange = (field: keyof Partial<UserData>, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -81,7 +80,7 @@ export default function RegistrationModal({ isOpen, onComplete }: RegistrationMo
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Fitness Level</label>
-            <select value={formData.fitnessLevel} onChange={(e) => handleChange('fitnessLevel', e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all duration-200" required>
+            <select value={formData.fitness_level} onChange={(e) => handleChange('fitness_level', e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all duration-200" required>
               <option value="">Select fitness level</option>
               <option value="beginner">Beginner</option>
               <option value="intermediate">Intermediate</option>

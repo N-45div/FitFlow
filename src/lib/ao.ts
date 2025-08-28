@@ -1,21 +1,11 @@
-import { createDataItemSigner, connect, message } from "@permaweb/aoconnect";
+import { createDataItemSigner, connect } from "@permaweb/aoconnect";
 
 // The Process ID of the agent we created
-export const AO_PROCESS_ID = "z6hliCGjG2DOwr8tZ0DG6MZboR6hHlkuIBbQoROJdOQ";
+export const AO_PROCESS_ID = "iqbEiX4lDMdnoovmUr79JbuBryxn8xcv6zRtQPpWEew";
 
-// Base URL for the Compute Unit
-const CU_URL = "https://cu.ao-testnet.xyz";
-
-// This is the signer for the user's wallet. It must be created before connect().
-const signer = createDataItemSigner(window.arweaveWallet);
-
-// Configure the library with all necessary parameters
-connect({
-  MODE: "mainnet",
-  GATEWAY_URL: "http://72.46.85.207:8734/",
-  CU_URL: CU_URL,
-  MU_URL: "https://mu.ao-testnet.xyz",
-  signer,
+// Configure the library with all necessary parameters  
+const { message, result } = connect({
+  MODE: "legacy"
 });
 
 // Interface for our API calls
@@ -26,16 +16,37 @@ interface SendMessageArgs {
 }
 
 /**
+ * Check if wallet is connected and available
+ */
+const checkWalletConnection = (): boolean => {
+  if (!(globalThis as any).arweaveWallet) {
+    console.error('Arweave wallet not found. Please install ArConnect.');
+    return false;
+  }
+  return true;
+};
+
+/**
  * Sends a message to our AO Process. This is used for write operations.
  * @param {SendMessageArgs} args - The arguments for the message.
  */
 export const sendMessage = async ({ action, tags = [], data = "" }: SendMessageArgs) => {
+  if (!checkWalletConnection()) {
+    throw new Error('Arweave wallet not found.');
+  }
+
   try {
+    // Create the signer using globalThis.arweaveWallet as per AO docs
+    const signer = createDataItemSigner((globalThis as any).arweaveWallet);
+
     const messageId = await message({
       process: AO_PROCESS_ID,
       tags: [{ name: "Action", value: action }, ...tags],
       data,
+      signer,
     });
+    
+    console.log(`Message sent successfully: ${messageId}`);
     return messageId;
   } catch (error) {
     console.error("Error sending message to AO:", error);
@@ -44,20 +55,19 @@ export const sendMessage = async ({ action, tags = [], data = "" }: SendMessageA
 };
 
 /**
- * Reads the patched state of a key from our AO Process.
- * This is the recommended way for read operations on HyperBEAM.
- * @param {string} key - The key of the state to read.
+ * Gets the result of a message sent to our AO Process.
+ * This is the legacynet way for read operations.
+ * @param {string} messageId - The message ID to get results for.
  */
-export const readState = async (key: string) => {
-  const url = `${CU_URL}/${AO_PROCESS_ID}/cache/${key}`;
+export const getMessageResult = async (messageId: string) => {
   try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch state for key ${key}: ${response.statusText}`);
-    }
-    return await response.json();
+    const messageResult = await result({
+      message: messageId,
+      process: AO_PROCESS_ID,
+    });
+    return messageResult;
   } catch (error) {
-    console.error(`Error reading state for key ${key}:`, error);
+    console.error(`Error getting result for message ${messageId}:`, error);
     throw error;
   }
 };
