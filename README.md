@@ -35,8 +35,7 @@ git --version
 
 ### 1. Clone & Install
 ```bash
-git clone <your-repo-url>
-cd flowiq/project
+git clone https://github.com/N-45div/FitFlow.git
 npm install
 ```
 
