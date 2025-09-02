@@ -155,11 +155,15 @@ function App() {
         if (result?.Messages?.[0]?.Data) {
           const data = JSON.parse(result.Messages[0].Data);
           
-          if ((data.age === 0 || data.height === 0 || data.weight === 0) && !profileSetupCompleted) {
+          // Check if profile is incomplete and we haven't completed setup for this address
+          const needsSetup = data.age === 0 || data.height === 0 || data.weight === 0;
+          const hasCompletedSetup = localStorage.getItem(`profileSetupCompleted_${address}`) === 'true';
+          
+          if (needsSetup && !hasCompletedSetup) {
             console.log('Profile needs setup, showing form');
             setProfileData(data);
             setShowProfileSetup(true);
-            setIsRegistered(false); // Set to false so we don't show loading
+            setIsRegistered(false);
             return;
           }
           
@@ -181,8 +185,14 @@ function App() {
   }, [address, connected, profileSetupCompleted]);
 
   useEffect(() => {
-    setProfileSetupCompleted(false);
-    setShowProfileSetup(false);
+    if (address) {
+      // Reset form visibility but check localStorage for completion status
+      setShowProfileSetup(false);
+      const hasCompleted = localStorage.getItem(`profileSetupCompleted_${address}`) === 'true';
+      setProfileSetupCompleted(hasCompleted);
+    } else {
+      setProfileSetupCompleted(false);
+    }
   }, [address]);
 
   useEffect(() => {
@@ -269,6 +279,9 @@ function App() {
           .filter(([key]) => key !== 'wallet_address' && key !== 'registration_date')
           .map(([name, value]) => ({ name, value: String(value) }))
       });
+      
+      // Mark profile setup as completed for this address
+      localStorage.setItem(`profileSetupCompleted_${address}`, 'true');
       
       // Set the user data immediately to prevent re-showing the form
       setUserData(data);
