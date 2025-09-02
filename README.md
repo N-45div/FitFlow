@@ -1,15 +1,11 @@
 # 🤖 AI Wellness Coach - AO Autonomous Agent
 
-> **A complete guide to building autonomous AI agents on Arweave's AO protocol with 72+ hour operation**
+> **A complete guide plus how we built autonomous AI agent on Arweave's AO protocol with 72+ hour operation**
 
 [![AO Protocol](https://img.shields.io/badge/AO-Protocol-orange)](https://ao.arweave.dev/)
 [![Arweave](https://img.shields.io/badge/Arweave-Permanent-yellow)](https://arweave.org/)
 [![React](https://img.shields.io/badge/React-18-blue)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
-
-## 🌟 What You'll Learn
-
-This project demonstrates how to build a **fully autonomous AI wellness coach** that runs continuously on Arweave's AO protocol. Perfect for hackathons, competitions, and learning AO development!
 
 ### Key Features Built
 - ✅ **72+ Hour Autonomous Operation** - Self-triggering agent loops
@@ -43,7 +39,6 @@ npm install
 ```bash
 npm run deploy-agent
 ```
-*Note: This automatically generates a wallet and deploys to AO. Your new process ID will be: `rUSeoWKlj0awVosFeerZklwjryHxoeUYxIA8v0WrlrQ`*
 
 ### 3. Start Development
 ```bash
@@ -68,10 +63,9 @@ While AO Mainnet is available, we recommend using Legacynet for now because:
 - Some features may behave differently
 - Higher confidence in data persistence on Legacynet
 
-### How to Check Your Network
-Your current deployment is on **Legacynet** with process ID:
+Our current deployment is on **Legacynet** with process ID:
 ```
-rUSeoWKlj0awVosFeerZklwjryHxoeUYxIA8v0WrlrQ
+LAUcVFHNqenk6iPBvQDao-mcZSXFOlF0dKeKHtv73_g
 ```
 
 
