@@ -52,6 +52,29 @@ npm run dev
 
 🎉 **That's it!** Your autonomous AI agent with advanced workout intelligence is now running on AO legacynet!
 
+## 🌐 Network Deployment: Legacynet vs Mainnet
+
+Fitflow is currently deployed on **AO Legacynet** for several important reasons:
+
+### Why Legacynet?
+- **Stability**: Legacynet is a battle-tested environment with proven reliability
+- **Maturity**: The ecosystem tooling and documentation are more mature
+- **Consistency**: Better compatibility with existing AO infrastructure
+- **Testing**: More thoroughly tested for long-running autonomous agents
+
+### Mainnet Considerations
+While AO Mainnet is available, we recommend using Legacynet for now because:
+- Mainnet is still in early stages
+- Some features may behave differently
+- Higher confidence in data persistence on Legacynet
+
+### How to Check Your Network
+Your current deployment is on **Legacynet** with process ID:
+```
+rUSeoWKlj0awVosFeerZklwjryHxoeUYxIA8v0WrlrQ
+```
+
+
 ## 📚 Complete Tutorial
 
 ### Understanding AO Architecture
