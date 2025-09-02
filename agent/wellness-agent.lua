@@ -305,16 +305,23 @@ Handlers.add(
       print("Creating default profile for new user: " .. userAddress)
       State.UserProfiles[userAddress] = {
         wallet_address = userAddress,
-        age = 25,
+        age = 0,  -- Default to 0 to indicate not set
         gender = "Not specified",
-        fitness_level = "beginner",
-        goal = "general-health",
-        weight = 70,
-        height = 170,
-        registration_date = msg.Timestamp
+        fitness_level = "Beginner",
+        fitness_goal = "general-health",
+        height = 0,  -- Default to 0 to indicate not set
+        weight = 0,  -- Added missing weight field
+        registration_date = msg.Timestamp or os.time() * 1000
       }
       userProfile = State.UserProfiles[userAddress]
       persistState()
+      
+      -- Send success response
+      ao.send({
+        Target = msg.From,
+        Action = "ProfileCreated",
+        Data = json.encode(userProfile)
+      })
     end
 
     replyWithProfile(msg, userAddress)

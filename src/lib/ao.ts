@@ -1,7 +1,7 @@
 import { createDataItemSigner, connect } from "@permaweb/aoconnect";
 
 // The Process ID of the agent we created
-export const AO_PROCESS_ID = "rUSeoWKlj0awVosFeerZklwjryHxoeUYxIA8v0WrlrQ";
+export const AO_PROCESS_ID = "LAUcVFHNqenk6iPBvQDao-mcZSXFOlF0dKeKHtv73_g";
 
 // Configure the library with all necessary parameters  
 const { message, result } = connect({

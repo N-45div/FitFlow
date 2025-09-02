@@ -15,6 +15,7 @@ import RegistrationModal from './components/RegistrationModal';
 import ProfilePage from './components/ProfilePage';
 import Notifications from './components/Notifications';
 import AutonomousStatus from './components/AutonomousStatus';
+import ProfileSetup from './components/ProfileSetup';
 
 // Data structures
 interface WorkoutData {
@@ -39,22 +40,26 @@ interface DailyCheckInData {
 }
 
 function App() {
-  const [userData, setUserData] = useState<UserData | null>(null);
-  const [workouts, setWorkouts] = useState<WorkoutData[]>([]);
-  const [nutritionLogs, setNutritionLogs] = useState<NutritionData[]>([]);
-  const [suggestedWorkout, setSuggestedWorkout] = useState<SuggestedExercise[] | null>(null);
-  const [dailyCheckIns, setDailyCheckIns] = useState<Record<string, DailyCheckInData>>({});
-  const [isLogging, setIsLogging] = useState(false);
+  // State declarations
+  const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const [profileData, setProfileData] = useState<UserData | null>(null);
+  const [profileSetupCompleted, setProfileSetupCompleted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [isRegistered, setIsRegistered] = useState<boolean | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [showLogWorkout, setShowLogWorkout] = useState(false);
   const [showLogNutrition, setShowLogNutrition] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [workouts, setWorkouts] = useState<WorkoutData[]>([]);
+  const [nutritionLogs, setNutritionLogs] = useState<NutritionData[]>([]);
+  const [suggestedExercises, setSuggestedExercises] = useState<SuggestedExercise[]>([]);
+  const [dailyCheckIns, setDailyCheckIns] = useState<Record<string, DailyCheckInData>>({});
+  const [isLogging, setIsLogging] = useState(false);
+  const [address, setAddress] = useState<string | null>(null);
   const { connected, connect, disconnect } = useConnection();
   
   // Get address from wallet
-  const [address, setAddress] = useState<string | null>(null);
-  
   useEffect(() => {
     const getAddress = async () => {
       if (connected && (globalThis as any).arweaveWallet) {
@@ -104,7 +109,7 @@ function App() {
         try {
           const suggestionResult = await getMessageResult(suggestionMsgId);
           if (suggestionResult?.Messages?.[0]?.Data) {
-            setSuggestedWorkout(JSON.parse(suggestionResult.Messages[0].Data));
+            setSuggestedExercises(JSON.parse(suggestionResult.Messages[0].Data));
           }
         } catch (e) { console.log("Suggestion data not ready yet"); }
       }, 3000);
@@ -134,59 +139,51 @@ function App() {
   }, []);
 
   const loadUserProfile = useCallback(async () => {
-    if (!address) return;
+    if (!connected || !address) {
+      setIsRegistered(false);
+      return;
+    }
     
-    console.log("Attempting to load user profile...");
-    setIsRegistered(null); // Set loading state
-
+    setIsLoading(true);
     try {
-      // Check wallet connection before sending message
-      if (!connected || !address) {
-        console.error('Wallet not connected or no address');
-        setIsRegistered(false);
-        return;
-      }
-
-      // Ask the agent to get profile (agent will auto-create if needed)
-      console.log("Sending GetProfile message...");
       const messageId = await sendMessage({ action: 'GetProfile' });
-      console.log("GetProfile message sent, ID:", messageId);
-
-      // Poll for the result using legacynet pattern
-      let profile = null;
-      for (let i = 0; i < 6; i++) { // Increased attempts
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Longer delay for legacynet
-        try {
-          console.log(`Polling attempt ${i + 1} for message ${messageId}`);
-          const result = await getMessageResult(messageId);
-          console.log("Poll result:", result);
+      
+      for (let i = 0; i < 8; i++) {
+        await new Promise(resolve => setTimeout(resolve, 2500));
+        const result = await getMessageResult(messageId);
+        
+        if (result?.Messages?.[0]?.Data) {
+          const data = JSON.parse(result.Messages[0].Data);
           
-          if (result?.Messages?.[0]?.Data) {
-            const data = JSON.parse(result.Messages[0].Data);
-            console.log("Profile loaded:", data);
-            profile = data;
-            break;
-          } else {
-            console.log("No data in result yet, continuing to poll...");
+          if ((data.age === 0 || data.height === 0 || data.weight === 0) && !profileSetupCompleted) {
+            console.log('Profile needs setup, showing form');
+            setProfileData(data);
+            setShowProfileSetup(true);
+            setIsRegistered(false); // Set to false so we don't show loading
+            return;
           }
-        } catch (error) {
-          console.log(`Profile polling attempt ${i + 1} failed:`, error);
+          
+          setUserData(data);
+          setIsRegistered(true);
+          return;
         }
       }
-
-      if (profile) {
-        setUserData(profile as UserData);
-        setIsRegistered(true);
-        loadAppData();
-      } else {
-        console.log("Profile creation/loading failed. Falling back to registration.");
-        setIsRegistered(false);
-      }
-    } catch (error) {
-      console.error('Failed to load user profile:', error);
+      
+      // If we get here, profile loading failed - set to false to show registration
+      console.log('Profile loading failed, showing registration');
       setIsRegistered(false);
+    } catch (error) {
+      console.error('Profile loading error:', error);
+      setIsRegistered(false);
+    } finally {
+      setIsLoading(false);
     }
-  }, [address, connected]);
+  }, [address, connected, profileSetupCompleted]);
+
+  useEffect(() => {
+    setProfileSetupCompleted(false);
+    setShowProfileSetup(false);
+  }, [address]);
 
   useEffect(() => {
     if (connected && address) {
@@ -214,7 +211,7 @@ function App() {
         } catch (e) { /* ignore error, retry */ }
       }
       if (newSuggestion) {
-        setSuggestedWorkout(newSuggestion);
+        setSuggestedExercises(newSuggestion);
         alert("New workout suggestion loaded!");
       } else {
         alert("Failed to get a new workout suggestion.");
@@ -264,35 +261,72 @@ function App() {
     setShowProfile(false);
   };
 
+  const handleProfileSubmit = async (data: UserData) => {
+    try {
+      await sendMessage({
+        action: 'UpdateProfile',
+        tags: Object.entries(data)
+          .filter(([key]) => key !== 'wallet_address' && key !== 'registration_date')
+          .map(([name, value]) => ({ name, value: String(value) }))
+      });
+      
+      // Set the user data immediately to prevent re-showing the form
+      setUserData(data);
+      setIsRegistered(true);
+      setProfileSetupCompleted(true);
+      setShowProfileSetup(false);
+      
+      // Load app data now that profile is complete
+      loadAppData();
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+    }
+  };
+
   if (!connected) return <LandingPage onGetStarted={connect} />;
   if (isRegistered === null) return <div className="min-h-screen flex items-center justify-center">Loading profile...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header onProfileClick={() => setShowProfile(true)} />
-      <Notifications notifications={notifications} onMarkAsRead={handleMarkNotificationsRead} />
-      <RegistrationModal isOpen={!isRegistered} onComplete={(data) => { setUserData(data); setIsRegistered(true); loadUserProfile(); }} />
-      {isRegistered && userData && (
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-6">
-            <AutonomousStatus />
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="space-y-8">
-              <WorkoutCard workouts={workouts} suggestedWorkout={suggestedWorkout} onRequestNewWorkout={handleRequestNewWorkout} />
-              <NutritionCard nutritionLogs={nutritionLogs} onLogMeal={() => setShowLogNutrition(true)} />
-            </div>
-            <div className="space-y-8">
-              <Dashboard dailyCheckIns={dailyCheckIns} />
-              <WellnessDashboard onLogCheckIn={handleLogCheckIn} isLoading={isLogging} dailyCheckIns={dailyCheckIns} />
-            </div>
-          </div>
-        </main>
+    <>
+      {showProfileSetup && profileData && (
+        <ProfileSetup 
+          initialData={profileData}
+          onSubmit={handleProfileSubmit}
+          onClose={() => setShowProfileSetup(false)}
+        />
       )}
-      <LogWorkoutModal isOpen={showLogWorkout} onClose={() => setShowLogWorkout(false)} />
-      <LogNutritionModal isOpen={showLogNutrition} onClose={() => setShowLogNutrition(false)} />
-      {showProfile && <ProfilePage userData={userData} onSignOut={handleSignOut} onClose={() => setShowProfile(false)} />}
-    </div>
+
+      <div className="min-h-screen bg-gray-50">
+        <Header onProfileClick={() => setShowProfile(true)} />
+        <Notifications notifications={notifications} onMarkAsRead={handleMarkNotificationsRead} />
+        <RegistrationModal isOpen={!isRegistered} onComplete={(data) => { setUserData(data); setIsRegistered(true); loadUserProfile(); }} />
+        {isLoading && <div className="loading-indicator">Loading profile...</div>}
+        {isLoading ? (
+          <div className="loading-indicator">Loading profile...</div>
+        ) : (
+          isRegistered && userData && (
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              <div className="mb-6">
+                <AutonomousStatus />
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-8">
+                  <WorkoutCard workouts={workouts} suggestedWorkout={suggestedExercises} onRequestNewWorkout={handleRequestNewWorkout} />
+                  <NutritionCard nutritionLogs={nutritionLogs} onLogMeal={() => setShowLogNutrition(true)} />
+                </div>
+                <div className="space-y-8">
+                  <Dashboard dailyCheckIns={dailyCheckIns} />
+                  <WellnessDashboard onLogCheckIn={handleLogCheckIn} isLoading={isLogging} dailyCheckIns={dailyCheckIns} />
+                </div>
+              </div>
+            </main>
+          )
+        )}
+        <LogWorkoutModal isOpen={showLogWorkout} onClose={() => setShowLogWorkout(false)} />
+        <LogNutritionModal isOpen={showLogNutrition} onClose={() => setShowLogNutrition(false)} />
+        {showProfile && <ProfilePage userData={userData} onSignOut={handleSignOut} onClose={() => setShowProfile(false)} onProfileSubmit={handleProfileSubmit} />}
+      </div>
+    </>
   );
 }
 
