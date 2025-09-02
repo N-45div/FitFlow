@@ -5,6 +5,6 @@ export interface UserData {
   gender: string;
   fitness_level: string;
   goal: string;
-  weight: number;
   height: number;
+  weight: number;
 }
